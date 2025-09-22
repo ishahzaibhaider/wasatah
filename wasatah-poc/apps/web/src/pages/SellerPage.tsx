@@ -1,20 +1,15 @@
 import { Card, CardBody } from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
+import { useNavigate } from 'react-router-dom';
+import propertyData from '../data/property.json';
+import { useRoleStore } from '../stores/useRoleStore';
 
 const SellerPage = () => {
-
-  const property = {
-    id: 'prop_001',
-    title: 'Luxury Villa in Al-Nakheel District',
-    address: '123 Al-Nakheel St, Riyadh',
-    price: 'SAR 2,800,000',
-    area: '450 sqm',
-    bedrooms: 5,
-    bathrooms: 6,
-    status: 'available',
-    deedVerified: true,
-    images: ['/images/villa1.jpg', '/images/villa2.jpg', '/images/villa3.jpg']
-  };
+  const navigate = useNavigate();
+  const { currentRole } = useRoleStore();
+  
+  // Get the featured property from the seed data
+  const property = propertyData[0];
 
   const offers = [
     {
@@ -46,26 +41,8 @@ const SellerPage = () => {
     }
   ];
 
-  const ownershipHistory = [
-    {
-      owner: 'Ahmed Al-Rashid',
-      period: '2020 - Present',
-      type: 'Current Owner',
-      verified: true
-    },
-    {
-      owner: 'Mohammed Al-Saud',
-      period: '2015 - 2020',
-      type: 'Previous Owner',
-      verified: true
-    },
-    {
-      owner: 'Fatima Al-Zahra',
-      period: '2010 - 2015',
-      type: 'Previous Owner',
-      verified: true
-    }
-  ];
+  // Use the ownership history from the property data
+  const ownershipHistory = property.ownershipHistory;
 
   const handleOfferAction = (offerId: string, action: 'accept' | 'decline') => {
     console.log(`${action} offer ${offerId}`);
@@ -85,11 +62,56 @@ const SellerPage = () => {
             <Badge variant="success" className="text-sm">
               ✅ Deed Verified
             </Badge>
+            <button 
+              onClick={() => navigate('/explorer')}
+              className="btn btn-secondary"
+            >
+              🔍 Open Explorer
+            </button>
             <button className="btn btn-primary">
               📝 Edit Property
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Role Checklist */}
+      <div className="mb-8">
+        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+          <CardBody className="p-6">
+            <h3 className="text-lg font-semibold text-green-900 mb-4">🏘️ Seller Role Capabilities</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center text-sm text-green-800">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  List and manage property listings
+                </div>
+                <div className="flex items-center text-sm text-green-800">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  Review and respond to offers
+                </div>
+                <div className="flex items-center text-sm text-green-800">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  Track ownership history and deed verification
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center text-sm text-green-800">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  Access blockchain property records
+                </div>
+                <div className="flex items-center text-sm text-green-800">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  Manage transaction documentation
+                </div>
+                <div className="flex items-center text-sm text-green-800">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  View property analytics and insights
+                </div>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
@@ -102,15 +124,17 @@ const SellerPage = () => {
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">{property.title}</h2>
                   <p className="text-gray-600 mb-4">{property.address}</p>
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <span>🏠 {property.area}</span>
+                    <span>🏠 {property.area} sqm</span>
                     <span>🛏️ {property.bedrooms} beds</span>
                     <span>🚿 {property.bathrooms} baths</span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-3xl font-bold text-primary-600">{property.price}</div>
+                  <div className="text-3xl font-bold text-primary-600">
+                    {property.currency} {property.price.toLocaleString()}
+                  </div>
                   <Badge variant="success" className="mt-2">
-                    Available
+                    {property.status.charAt(0).toUpperCase() + property.status.slice(1)}
                   </Badge>
                 </div>
               </div>
@@ -128,27 +152,41 @@ const SellerPage = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Ownership History</h3>
                 <div className="space-y-3">
-                  {ownershipHistory.map((owner, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mr-3">
-                          <span className="text-primary-600 font-semibold">
-                            {owner.owner.split(' ').map(n => n[0]).join('')}
-                          </span>
+                  {ownershipHistory.map((owner, index) => {
+                    const fromDate = new Date(owner.fromDate).toLocaleDateString();
+                    const toDate = owner.toDate ? new Date(owner.toDate).toLocaleDateString() : 'Present';
+                    const isCurrentOwner = !owner.toDate;
+                    
+                    return (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                            <span className="text-primary-600 font-semibold">
+                              {owner.ownerName.split(' ').map(n => n[0]).join('')}
+                            </span>
+                          </div>
+                          <div>
+                            <div className="font-medium">{owner.ownerName}</div>
+                            <div className="text-sm text-gray-500">{fromDate} - {toDate}</div>
+                            <div className="text-xs text-gray-400 capitalize">{owner.transferType}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-medium">{owner.owner}</div>
-                          <div className="text-sm text-gray-500">{owner.period}</div>
+                        <div className="text-right">
+                          <Badge variant={owner.deedVerified ? 'success' : 'warning'}>
+                            {owner.deedVerified ? '✅ Deed Verified' : '⏳ Pending'}
+                          </Badge>
+                          <div className="text-sm text-gray-500 mt-1">
+                            {isCurrentOwner ? 'Current Owner' : 'Previous Owner'}
+                          </div>
+                          {owner.verificationAuthority && (
+                            <div className="text-xs text-gray-400 mt-1">
+                              {owner.verificationAuthority}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <Badge variant={owner.verified ? 'success' : 'warning'}>
-                          {owner.verified ? '✅ Verified' : '⏳ Pending'}
-                        </Badge>
-                        <div className="text-sm text-gray-500 mt-1">{owner.type}</div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </CardBody>

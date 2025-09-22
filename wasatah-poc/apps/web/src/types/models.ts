@@ -90,7 +90,8 @@ export type EventType =
   | 'identity_verification'
   | 'deed_verification'
   | 'risk_assessment'
-  | 'impersonation_detected';
+  | 'impersonation_detected'
+  | 'zkp_check';
 
 export interface LedgerEvent {
   id: string;

@@ -1,9 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import PageHeading from '../components/layout/PageHeading';
 import { Card, CardBody } from '../components/ui/Card';
+import { useRoleStore } from '../stores/useRoleStore';
+import { useAuthStore } from '../stores/useAuthStore';
 
 const RolePage = () => {
   const navigate = useNavigate();
+  const { selectRole } = useRoleStore();
+  const { user } = useAuthStore();
 
   const roles = [
     {
@@ -35,7 +39,8 @@ const RolePage = () => {
     }
   ];
 
-  const handleRoleSelect = (path: string) => {
+  const handleRoleSelect = (roleId: string, path: string) => {
+    selectRole(roleId as 'buyer' | 'seller' | 'broker');
     navigate(path);
   };
 
@@ -44,15 +49,51 @@ const RolePage = () => {
       <PageHeading
         title="Choose Your Role"
         subtitle="Select how you want to experience the Wasatah platform"
-        className="text-center mb-12"
+        className="text-center mb-8"
       />
+
+      {/* User Info */}
+      {user && (
+        <div className="mb-8">
+          <Card className="bg-gradient-to-r from-primary-50 to-blue-50 border-primary-200">
+            <CardBody className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
+                    <span className="text-lg text-white font-semibold">
+                      {user.name.split(' ').map(n => n[0]).join('')}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{user.name}</h3>
+                    <p className="text-sm text-gray-600">{user.email}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  {user.digitalId && (
+                    <>
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        ✅ NAFTA Verified (Simulated)
+                      </span>
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                        🔐 ZKP Verified (Simulated)
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+      )}
 
       <div className="grid md:grid-cols-3 gap-8">
         {roles.map((role) => (
           <Card
             key={role.id}
             hover
-            onClick={() => handleRoleSelect(role.path)}
+            onClick={() => handleRoleSelect(role.id, role.path)}
             className="text-center transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
           >
             <CardBody className="p-8">

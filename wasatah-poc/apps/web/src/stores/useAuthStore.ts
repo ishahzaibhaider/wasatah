@@ -13,6 +13,7 @@ interface AuthState {
   login: (credentials: LoginForm) => Promise<void>;
   logout: () => void;
   updateUser: (user: Partial<User>) => void;
+  setUser: (user: User) => void;
   verifyIdentity: (userId: string) => Promise<DigitalID>;
   clearError: () => void;
   setLoading: (loading: boolean) => void;
@@ -36,13 +37,14 @@ export const useAuthStore = create<AuthState>()(
           console.log('Login attempt:', credentials);
           
           // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 500));
           
-          // Mock user data for demo
+          // For demo purposes, just set a basic user structure
+          // The actual user data will be set by the login page
           const mockUser: User = {
-            id: 'user_001',
+            id: 'temp_user',
             email: credentials.email,
-            name: 'Demo User',
+            name: 'Loading...',
             phone: '+966501234567',
             role: 'buyer', // Default role, will be changed in role selection
             createdAt: new Date().toISOString(),
@@ -80,6 +82,13 @@ export const useAuthStore = create<AuthState>()(
             user: { ...currentUser, ...userData },
           });
         }
+      },
+
+      setUser: (user: User) => {
+        set({
+          user,
+          isAuthenticated: true,
+        });
       },
 
       verifyIdentity: async (userId: string) => {
