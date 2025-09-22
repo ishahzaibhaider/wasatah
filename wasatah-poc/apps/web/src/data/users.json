@@ -58,45 +58,5 @@
     "createdAt": "2024-09-19T13:30:00Z",
     "lastLoginAt": "2024-09-22T16:45:00Z",
     "isActive": true
-  },
-  {
-    "id": "user_004",
-    "email": "omar.broker@example.com",
-    "name": "Omar Al-Broker",
-    "phone": "+966501234570",
-    "role": "broker",
-    "digitalId": {
-      "id": "digital_id_004",
-      "userId": "user_004",
-      "verified": true,
-      "verificationMethod": "NAFTA_SIM",
-      "issuedAt": "2024-09-17T12:00:00Z",
-      "expiresAt": "2025-09-17T12:00:00Z",
-      "zkpProof": "zkp_proof_22222",
-      "riskScore": 5
-    },
-    "createdAt": "2024-09-17T11:30:00Z",
-    "lastLoginAt": "2024-09-22T13:20:00Z",
-    "isActive": true
-  },
-  {
-    "id": "user_005",
-    "email": "suspicious.user@example.com",
-    "name": "Suspicious User",
-    "phone": "+966501234567",
-    "role": "buyer",
-    "digitalId": {
-      "id": "digital_id_005",
-      "userId": "user_005",
-      "verified": false,
-      "verificationMethod": "NAFTA_SIM",
-      "issuedAt": "2024-09-21T16:00:00Z",
-      "expiresAt": "2025-09-21T16:00:00Z",
-      "zkpProof": "zkp_proof_33333",
-      "riskScore": 85
-    },
-    "createdAt": "2024-09-21T15:30:00Z",
-    "lastLoginAt": "2024-09-22T09:10:00Z",
-    "isActive": true
   }
 ]

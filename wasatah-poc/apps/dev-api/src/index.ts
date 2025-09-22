@@ -7,9 +7,16 @@ import { ledgerRoutes } from './routes/ledger.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// CORS configuration for localhost:5173 (Vite dev server)
+const corsOptions = {
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(morgan('combined'));
 app.use(express.json());
 

@@ -100,53 +100,6 @@ export function createLedgerEvent(
   };
 }
 
-// Create new offer
-export function createOffer(
-  propertyId: string,
-  buyerId: string,
-  buyerName: string,
-  amount: number,
-  message?: string
-): Offer {
-  return {
-    id: generateId('offer'),
-    propertyId,
-    buyerId,
-    buyerName,
-    amount,
-    currency: 'SAR',
-    message,
-    status: 'pending',
-    submittedAt: new Date().toISOString(),
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
-  };
-}
-
-// Create new risk flag
-export function createRiskFlag(
-  userId: string,
-  type: RiskFlag['type'],
-  severity: RiskFlag['severity'],
-  description: string,
-  metadata: Record<string, any> = {}
-): RiskFlag {
-  return {
-    id: generateId('risk'),
-    userId,
-    type,
-    severity,
-    description,
-    detectedAt: new Date().toISOString(),
-    isActive: true,
-    metadata,
-  };
-}
-
-// Find user by ID
-export function findUserById(users: User[], userId: string): User | undefined {
-  return users.find(user => user.id === userId);
-}
-
 // Find user by email
 export function findUserByEmail(users: User[], email: string): User | undefined {
   return users.find(user => user.email.toLowerCase() === email.toLowerCase());
@@ -157,24 +110,9 @@ export function findPropertyById(properties: Property[], propertyId: string): Pr
   return properties.find(property => property.id === propertyId);
 }
 
-// Find offers by property ID
-export function findOffersByPropertyId(offers: Offer[], propertyId: string): Offer[] {
-  return offers.filter(offer => offer.propertyId === propertyId);
-}
-
-// Find offers by buyer ID
-export function findOffersByBuyerId(offers: Offer[], buyerId: string): Offer[] {
-  return offers.filter(offer => offer.buyerId === buyerId);
-}
-
 // Find ledger events by type
 export function findLedgerEventsByType(events: LedgerEvent[], type: LedgerEvent['type']): LedgerEvent[] {
   return events.filter(event => event.type === type);
-}
-
-// Find ledger events by actor ID
-export function findLedgerEventsByActor(events: LedgerEvent[], actorId: string): LedgerEvent[] {
-  return events.filter(event => event.actorId === actorId);
 }
 
 // Get recent ledger events
@@ -182,76 +120,6 @@ export function getRecentLedgerEvents(events: LedgerEvent[], limit: number = 10)
   return events
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .slice(0, limit);
-}
-
-// Check for duplicate phone numbers
-export function checkDuplicatePhone(users: User[], phone: string, excludeUserId?: string): User | null {
-  return users.find(user => 
-    user.phone === phone && 
-    user.id !== excludeUserId
-  ) || null;
-}
-
-// Check for duplicate emails
-export function checkDuplicateEmail(users: User[], email: string, excludeUserId?: string): User | null {
-  return users.find(user => 
-    user.email.toLowerCase() === email.toLowerCase() && 
-    user.id !== excludeUserId
-  ) || null;
-}
-
-// Validate user data
-export function validateUser(user: Partial<User>): string[] {
-  const errors: string[] = [];
-  
-  if (!user.email || !user.email.includes('@')) {
-    errors.push('Valid email is required');
-  }
-  
-  if (!user.name || user.name.trim().length < 2) {
-    errors.push('Name must be at least 2 characters');
-  }
-  
-  if (!user.phone || !user.phone.startsWith('+966')) {
-    errors.push('Valid Saudi phone number is required');
-  }
-  
-  if (!user.role || !['buyer', 'seller', 'broker'].includes(user.role)) {
-    errors.push('Valid role is required');
-  }
-  
-  return errors;
-}
-
-// Validate property data
-export function validateProperty(property: Partial<Property>): string[] {
-  const errors: string[] = [];
-  
-  if (!property.title || property.title.trim().length < 5) {
-    errors.push('Property title must be at least 5 characters');
-  }
-  
-  if (!property.address || property.address.trim().length < 10) {
-    errors.push('Valid address is required');
-  }
-  
-  if (!property.price || property.price <= 0) {
-    errors.push('Valid price is required');
-  }
-  
-  if (!property.area || property.area <= 0) {
-    errors.push('Valid area is required');
-  }
-  
-  if (!property.bedrooms || property.bedrooms < 1) {
-    errors.push('At least 1 bedroom is required');
-  }
-  
-  if (!property.bathrooms || property.bathrooms < 1) {
-    errors.push('At least 1 bathroom is required');
-  }
-  
-  return errors;
 }
 
 // Format currency
@@ -274,59 +142,6 @@ export function formatDate(date: string | Date): string {
     hour: '2-digit',
     minute: '2-digit',
   }).format(d);
-}
-
-// Format relative time
-export function formatRelativeTime(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - d.getTime()) / 1000);
-  
-  if (diffInSeconds < 60) {
-    return 'Just now';
-  } else if (diffInSeconds < 3600) {
-    const minutes = Math.floor(diffInSeconds / 60);
-    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-  } else if (diffInSeconds < 86400) {
-    const hours = Math.floor(diffInSeconds / 3600);
-    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-  } else {
-    const days = Math.floor(diffInSeconds / 86400);
-    return `${days} day${days > 1 ? 's' : ''} ago`;
-  }
-}
-
-// Calculate risk score based on various factors
-export function calculateRiskScore(user: User, allUsers: User[]): number {
-  let riskScore = 0;
-  
-  // Check for duplicate phone
-  if (checkDuplicatePhone(allUsers, user.phone || '', user.id)) {
-    riskScore += 40;
-  }
-  
-  // Check for duplicate email
-  if (checkDuplicateEmail(allUsers, user.email, user.id)) {
-    riskScore += 30;
-  }
-  
-  // Check verification status
-  if (!user.digitalId?.verified) {
-    riskScore += 25;
-  }
-  
-  // Check if user is new (less than 24 hours)
-  const userAge = Date.now() - new Date(user.createdAt).getTime();
-  if (userAge < 24 * 60 * 60 * 1000) {
-    riskScore += 15;
-  }
-  
-  // Check for suspicious email patterns
-  if (user.email.includes('test') || user.email.includes('demo') || user.email.includes('fake')) {
-    riskScore += 20;
-  }
-  
-  return Math.min(riskScore, 100);
 }
 
 // Export seed data for direct access

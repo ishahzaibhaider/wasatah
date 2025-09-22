@@ -1,9 +1,16 @@
 import { Link } from 'react-router-dom';
+import { useLedgerStore } from '../stores/useLedgerStore';
 
 const TopBar = () => {
-  const handleReset = () => {
-    // TODO: Implement reset functionality
-    console.log('Reset demo data');
+  const { resetLedger } = useLedgerStore();
+
+  const handleReset = async () => {
+    try {
+      await resetLedger();
+      console.log('Demo data reset successfully');
+    } catch (error) {
+      console.error('Failed to reset demo data:', error);
+    }
   };
 
   return (

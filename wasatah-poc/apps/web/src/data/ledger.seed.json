@@ -34,62 +34,9 @@
   },
   {
     "id": "tx_003",
-    "type": "user_registered",
-    "timestamp": "2024-09-18T07:30:00Z",
-    "hash": "0x3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890abcd",
-    "actorId": "user_002",
-    "actorName": "Ahmed Al-Rashid",
-    "details": {
-      "email": "ahmed.alrashid@example.com",
-      "role": "seller",
-      "verificationStatus": "pending"
-    },
-    "signature": "sig_003",
-    "blockNumber": 998,
-    "transactionIndex": 0
-  },
-  {
-    "id": "tx_004",
-    "type": "identity_verification",
-    "timestamp": "2024-09-18T08:00:00Z",
-    "hash": "0x4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-    "actorId": "user_002",
-    "actorName": "Ahmed Al-Rashid",
-    "details": {
-      "method": "NAFTA_SIM",
-      "status": "verified",
-      "riskScore": 8,
-      "zkpProof": "zkp_proof_67890"
-    },
-    "signature": "sig_004",
-    "blockNumber": 999,
-    "transactionIndex": 0
-  },
-  {
-    "id": "tx_005",
-    "type": "deed_verification",
-    "timestamp": "2024-09-22T08:20:00Z",
-    "hash": "0x5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12",
-    "actorId": "system",
-    "actorName": "Saudi Land Registry",
-    "details": {
-      "propertyId": "prop_001",
-      "propertyTitle": "Luxury Villa in Al-Nakheel District",
-      "ownerId": "user_002",
-      "ownerName": "Ahmed Al-Rashid",
-      "status": "verified",
-      "authority": "Saudi Land Registry",
-      "verificationDate": "2024-09-22T08:20:00Z"
-    },
-    "signature": "sig_005",
-    "blockNumber": 1002,
-    "transactionIndex": 0
-  },
-  {
-    "id": "tx_006",
     "type": "property_listed",
     "timestamp": "2024-09-22T10:30:00Z",
-    "hash": "0x6f7890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234",
+    "hash": "0x3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890abcd",
     "actorId": "user_002",
     "actorName": "Ahmed Al-Rashid",
     "details": {
@@ -99,86 +46,15 @@
       "status": "available",
       "deedVerified": true
     },
-    "signature": "sig_006",
-    "blockNumber": 1003,
+    "signature": "sig_003",
+    "blockNumber": 1002,
     "transactionIndex": 0
   },
   {
-    "id": "tx_007",
-    "type": "deed_verification",
-    "timestamp": "2024-09-22T09:15:00Z",
-    "hash": "0x7890abcdef1234567890abcdef1234567890abcdef1234567890abcdef123456",
-    "actorId": "system",
-    "actorName": "Saudi Land Registry",
-    "details": {
-      "propertyId": "prop_002",
-      "propertyTitle": "Modern Apartment in King Fahd District",
-      "ownerId": "user_002",
-      "ownerName": "Ahmed Al-Rashid",
-      "status": "verified",
-      "authority": "Saudi Land Registry",
-      "verificationDate": "2024-09-22T09:15:00Z"
-    },
-    "signature": "sig_007",
-    "blockNumber": 1004,
-    "transactionIndex": 0
-  },
-  {
-    "id": "tx_008",
-    "type": "property_listed",
-    "timestamp": "2024-09-22T11:00:00Z",
-    "hash": "0x890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567",
-    "actorId": "user_002",
-    "actorName": "Ahmed Al-Rashid",
-    "details": {
-      "propertyId": "prop_002",
-      "propertyTitle": "Modern Apartment in King Fahd District",
-      "price": "SAR 1,200,000",
-      "status": "available",
-      "deedVerified": true
-    },
-    "signature": "sig_008",
-    "blockNumber": 1005,
-    "transactionIndex": 0
-  },
-  {
-    "id": "tx_009",
-    "type": "user_registered",
-    "timestamp": "2024-09-19T13:30:00Z",
-    "hash": "0x90abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678",
-    "actorId": "user_003",
-    "actorName": "Sarah Al-Mansouri",
-    "details": {
-      "email": "sarah.almansouri@example.com",
-      "role": "buyer",
-      "verificationStatus": "pending"
-    },
-    "signature": "sig_009",
-    "blockNumber": 1006,
-    "transactionIndex": 0
-  },
-  {
-    "id": "tx_010",
-    "type": "identity_verification",
-    "timestamp": "2024-09-19T14:00:00Z",
-    "hash": "0x0abcdef1234567890abcdef1234567890abcdef1234567890abcdef123456789",
-    "actorId": "user_003",
-    "actorName": "Sarah Al-Mansouri",
-    "details": {
-      "method": "NAFTA_SIM",
-      "status": "verified",
-      "riskScore": 12,
-      "zkpProof": "zkp_proof_11111"
-    },
-    "signature": "sig_010",
-    "blockNumber": 1007,
-    "transactionIndex": 0
-  },
-  {
-    "id": "tx_011",
+    "id": "tx_004",
     "type": "offer_made",
     "timestamp": "2024-09-22T14:15:00Z",
-    "hash": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "hash": "0x4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
     "actorId": "user_003",
     "actorName": "Sarah Al-Mansouri",
     "details": {
@@ -189,77 +65,8 @@
       "status": "pending",
       "message": "Interested in this beautiful villa. Please consider my offer."
     },
-    "signature": "sig_011",
-    "blockNumber": 1008,
-    "transactionIndex": 0
-  },
-  {
-    "id": "tx_012",
-    "type": "user_registered",
-    "timestamp": "2024-09-17T11:30:00Z",
-    "hash": "0xbcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890a",
-    "actorId": "user_004",
-    "actorName": "Omar Al-Broker",
-    "details": {
-      "email": "omar.broker@example.com",
-      "role": "broker",
-      "verificationStatus": "pending"
-    },
-    "signature": "sig_012",
-    "blockNumber": 997,
-    "transactionIndex": 0
-  },
-  {
-    "id": "tx_013",
-    "type": "identity_verification",
-    "timestamp": "2024-09-17T12:00:00Z",
-    "hash": "0xcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890ab",
-    "actorId": "user_004",
-    "actorName": "Omar Al-Broker",
-    "details": {
-      "method": "NAFTA_SIM",
-      "status": "verified",
-      "riskScore": 5,
-      "zkpProof": "zkp_proof_22222"
-    },
-    "signature": "sig_013",
-    "blockNumber": 998,
-    "transactionIndex": 1
-  },
-  {
-    "id": "tx_014",
-    "type": "user_registered",
-    "timestamp": "2024-09-21T15:30:00Z",
-    "hash": "0xdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abc",
-    "actorId": "user_005",
-    "actorName": "Suspicious User",
-    "details": {
-      "email": "suspicious.user@example.com",
-      "role": "buyer",
-      "verificationStatus": "pending"
-    },
-    "signature": "sig_014",
-    "blockNumber": 1009,
-    "transactionIndex": 0
-  },
-  {
-    "id": "tx_015",
-    "type": "impersonation_detected",
-    "timestamp": "2024-09-21T16:00:00Z",
-    "hash": "0xef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd",
-    "actorId": "system",
-    "actorName": "Security System",
-    "details": {
-      "userId": "user_005",
-      "userName": "Suspicious User",
-      "riskType": "duplicate_phone",
-      "severity": "high",
-      "description": "Phone number +966501234567 already associated with another user",
-      "relatedUserId": "user_001",
-      "relatedUserName": "Demo User"
-    },
-    "signature": "sig_015",
-    "blockNumber": 1010,
+    "signature": "sig_004",
+    "blockNumber": 1003,
     "transactionIndex": 0
   }
 ]

@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import type { LedgerEvent, EventType } from '../types/models';
+import { apiClient, isReadonlyMode } from '../utils/api';
+import { cloneSeedLedgerEvents } from '../utils/data';
 
 interface LedgerState {
   // State
@@ -15,6 +17,7 @@ interface LedgerState {
   getRecentEvents: (limit?: number) => LedgerEvent[];
   clearEvents: () => void;
   clearError: () => void;
+  resetLedger: () => Promise<void>;
 }
 
 export const useLedgerStore = create<LedgerState>((set, get) => ({
@@ -28,88 +31,42 @@ export const useLedgerStore = create<LedgerState>((set, get) => ({
     set({ isLoading: true, error: null });
     
     try {
-      // TODO: Implement API call to load ledger events
-      console.log('Loading ledger events...');
+      if (isReadonlyMode()) {
+        // In read-only mode, load from bundled seed data
+        console.log('Loading ledger events from seed data (read-only mode)...');
+        const seedEvents = cloneSeedLedgerEvents();
+        set({
+          events: seedEvents,
+          isLoading: false,
+        });
+        return;
+      }
+
+      // Try to load from API
+      console.log('Loading ledger events from API...');
+      const response = await apiClient.getLedgerEvents();
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock ledger events data
-      const mockEvents: LedgerEvent[] = [
-        {
-          id: 'tx_001',
-          type: 'property_listed',
-          timestamp: '2024-09-22T10:30:00Z',
-          hash: '0x1a2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890',
-          actorId: 'user_002',
-          actorName: 'Ahmed Al-Rashid',
-          details: {
-            property: 'Luxury Villa - Riyadh',
-            price: 'SAR 2,800,000',
-            propertyId: 'prop_001',
-          },
-          signature: 'sig_001',
-          blockNumber: 1001,
-          transactionIndex: 0,
-        },
-        {
-          id: 'tx_002',
-          type: 'offer_made',
-          timestamp: '2024-09-22T14:15:00Z',
-          hash: '0x2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890ab',
-          actorId: 'user_001',
-          actorName: 'Sarah Al-Mansouri',
-          details: {
-            propertyId: 'prop_001',
-            amount: 'SAR 2,500,000',
-            offerId: 'offer_001',
-          },
-          signature: 'sig_002',
-          blockNumber: 1002,
-          transactionIndex: 0,
-        },
-        {
-          id: 'tx_003',
-          type: 'identity_verification',
-          timestamp: '2024-09-22T09:45:00Z',
-          hash: '0x3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890abcd',
-          actorId: 'user_001',
-          actorName: 'Sarah Al-Mansouri',
-          details: {
-            method: 'NAFTA_SIM',
-            status: 'verified',
-            riskScore: 15,
-          },
-          signature: 'sig_003',
-          blockNumber: 1000,
-          transactionIndex: 1,
-        },
-        {
-          id: 'tx_004',
-          type: 'deed_verification',
-          timestamp: '2024-09-22T08:20:00Z',
-          hash: '0x4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-          actorId: 'system',
-          actorName: 'Saudi Land Registry',
-          details: {
-            propertyId: 'prop_001',
-            status: 'verified',
-            authority: 'Saudi Land Registry',
-          },
-          signature: 'sig_004',
-          blockNumber: 999,
-          transactionIndex: 0,
-        },
-      ];
-      
-      set({
-        events: mockEvents,
-        isLoading: false,
-      });
+      if (response.success && response.data) {
+        set({
+          events: response.data.events || [],
+          isLoading: false,
+        });
+      } else {
+        // Fallback to seed data if API fails
+        console.warn('API failed, falling back to seed data:', response.error);
+        const seedEvents = cloneSeedLedgerEvents();
+        set({
+          events: seedEvents,
+          isLoading: false,
+        });
+      }
     } catch (error) {
+      // Fallback to seed data on any error
+      console.warn('Error loading from API, falling back to seed data:', error);
+      const seedEvents = cloneSeedLedgerEvents();
       set({
+        events: seedEvents,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Failed to load ledger events',
       });
     }
   },
@@ -118,32 +75,27 @@ export const useLedgerStore = create<LedgerState>((set, get) => ({
     set({ isLoading: true, error: null });
     
     try {
-      // TODO: Implement API call to add ledger event
-      console.log('Adding ledger event:', type, actorId, actorName, details);
+      if (isReadonlyMode()) {
+        throw new Error('Cannot add events in read-only mode');
+      }
+
+      console.log('Adding ledger event via API:', type, actorId, actorName, details);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Call API to append event
+      const response = await apiClient.appendLedgerEvent(type, actorId, actorName, details);
       
-      const newEvent: LedgerEvent = {
-        id: `tx_${Date.now()}`,
-        type,
-        timestamp: new Date().toISOString(),
-        hash: `0x${Math.random().toString(16).substr(2, 64)}`,
-        actorId,
-        actorName,
-        details,
-        signature: `sig_${Date.now()}`,
-        blockNumber: 1000 + get().events.length,
-        transactionIndex: 0,
-      };
-      
-      const events = get().events;
-      set({
-        events: [newEvent, ...events], // Add to beginning for chronological order
-        isLoading: false,
-      });
-      
-      return newEvent;
+      if (response.success && response.data) {
+        // Add the new event to the local state
+        const events = get().events;
+        set({
+          events: [response.data, ...events], // Add to beginning for chronological order
+          isLoading: false,
+        });
+        
+        return response.data;
+      } else {
+        throw new Error(response.error || 'Failed to add ledger event');
+      }
     } catch (error) {
       set({
         isLoading: false,
@@ -171,5 +123,39 @@ export const useLedgerStore = create<LedgerState>((set, get) => ({
 
   clearError: () => {
     set({ error: null });
+  },
+
+  resetLedger: async () => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      if (isReadonlyMode()) {
+        // In read-only mode, just reload from seed data
+        const seedEvents = cloneSeedLedgerEvents();
+        set({
+          events: seedEvents,
+          isLoading: false,
+        });
+        return;
+      }
+
+      console.log('Resetting ledger via API...');
+      const response = await apiClient.resetLedger();
+      
+      if (response.success && response.data) {
+        set({
+          events: response.data.events || [],
+          isLoading: false,
+        });
+      } else {
+        throw new Error(response.error || 'Failed to reset ledger');
+      }
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Failed to reset ledger',
+      });
+      throw error;
+    }
   },
 }));
