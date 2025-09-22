@@ -1,11 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardBody } from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
+import { useOfferStore } from '../stores/useOfferStore';
+import Notification from '../components/Notification';
 
 const BuyerPage = () => {
   const [offerAmount, setOfferAmount] = useState('');
   const [offerMessage, setOfferMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'info';
+    isVisible: boolean;
+  }>({
+    message: '',
+    type: 'info',
+    isVisible: false
+  });
+  
+  const { 
+    offers, 
+    createOffer, 
+    getOffersByBuyer, 
+    loadOffers, 
+    isLoading, 
+    error 
+  } = useOfferStore();
 
   const property = {
     id: 'prop_001',
@@ -23,40 +43,48 @@ const BuyerPage = () => {
     riskScore: 15
   };
 
-  const myOffers = [
-    {
-      id: 'offer_001',
-      propertyTitle: 'Luxury Villa in Al-Nakheel District',
-      amount: 'SAR 2,500,000',
-      status: 'pending',
-      submittedAt: '2 hours ago',
-      message: 'Interested in this beautiful villa. Please consider my offer.'
-    },
-    {
-      id: 'offer_002',
-      propertyTitle: 'Modern Apartment in King Fahd District',
-      amount: 'SAR 1,200,000',
-      status: 'accepted',
-      submittedAt: '1 day ago',
-      message: 'Looking forward to completing this transaction.'
-    }
-  ];
+  // Load offers on component mount
+  useEffect(() => {
+    loadOffers();
+  }, [loadOffers]);
+
+  // Get current user's offers (using current_user as buyerId for now)
+  const myOffers = getOffersByBuyer('current_user');
 
   const handleMakeOffer = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    console.log('Making offer:', { amount: offerAmount, message: offerMessage });
-    
-    // Reset form
-    setOfferAmount('');
-    setOfferMessage('');
-    setIsSubmitting(false);
-    
-    // TODO: Add success notification
+    try {
+      const offerData = {
+        propertyId: property.id,
+        amount: parseInt(offerAmount),
+        message: offerMessage,
+        conditions: []
+      };
+      
+      await createOffer(offerData);
+      
+      // Reset form
+      setOfferAmount('');
+      setOfferMessage('');
+      
+      // Show success message
+      setNotification({
+        message: 'Offer submitted successfully!',
+        type: 'success',
+        isVisible: true
+      });
+    } catch (error) {
+      console.error('Failed to submit offer:', error);
+      setNotification({
+        message: 'Failed to submit offer. Please try again.',
+        type: 'error',
+        isVisible: true
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -242,8 +270,8 @@ const BuyerPage = () => {
                 <div key={offer.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h3 className="font-medium text-gray-900">{offer.propertyTitle}</h3>
-                      <p className="text-lg font-bold text-primary-600">{offer.amount}</p>
+                      <h3 className="font-medium text-gray-900">{property.title}</h3>
+                      <p className="text-lg font-bold text-primary-600">{formatCurrency(offer.amount)}</p>
                     </div>
                     <Badge 
                       variant={offer.status === 'pending' ? 'warning' : offer.status === 'accepted' ? 'success' : 'danger'}
@@ -254,7 +282,9 @@ const BuyerPage = () => {
                   </div>
                   
                   <p className="text-sm text-gray-600 mb-2">{offer.message}</p>
-                  <p className="text-sm text-gray-500">Submitted {offer.submittedAt}</p>
+                  <p className="text-sm text-gray-500">
+                    Submitted {new Date(offer.submittedAt).toLocaleDateString()}
+                  </p>
                 </div>
               ))}
             </div>
@@ -267,6 +297,14 @@ const BuyerPage = () => {
           )}
         </CardBody>
       </Card>
+
+      {/* Notification */}
+      <Notification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
+      />
     </div>
   );
 };

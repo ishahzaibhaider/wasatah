@@ -1,52 +1,79 @@
+import { useState, useEffect } from 'react';
 import { Card, CardBody } from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import { useNavigate } from 'react-router-dom';
 import propertyData from '../data/property.json';
 import { useRoleStore } from '../stores/useRoleStore';
+import { useOfferStore } from '../stores/useOfferStore';
+import { usePropertyStore } from '../stores/usePropertyStore';
+import PropertyEditModal from '../components/PropertyEditModal';
+import Notification from '../components/Notification';
 
 const SellerPage = () => {
   const navigate = useNavigate();
   const { currentRole } = useRoleStore();
+  const [isEditing, setIsEditing] = useState(false);
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'info';
+    isVisible: boolean;
+  }>({
+    message: '',
+    type: 'info',
+    isVisible: false
+  });
+  
+  const { 
+    offers, 
+    updateOfferStatus, 
+    getOffersByProperty, 
+    loadOffers, 
+    isLoading: offersLoading 
+  } = useOfferStore();
+  
+  const { 
+    currentProperty, 
+    updateProperty, 
+    loadProperty, 
+    isLoading: propertyLoading 
+  } = usePropertyStore();
   
   // Get the featured property from the seed data
   const property = propertyData[0];
 
-  const offers = [
-    {
-      id: 'offer_001',
-      amount: 'SAR 2,500,000',
-      buyer: 'Sarah Al-Mansouri',
-      buyerEmail: 'sarah@example.com',
-      status: 'pending',
-      timestamp: '2 hours ago',
-      message: 'Interested in this beautiful villa. Please consider my offer.'
-    },
-    {
-      id: 'offer_002',
-      amount: 'SAR 2,300,000',
-      buyer: 'Khalid Al-Rashid',
-      buyerEmail: 'khalid@example.com',
-      status: 'declined',
-      timestamp: '1 day ago',
-      message: 'Looking for a family home in this area.'
-    },
-    {
-      id: 'offer_003',
-      amount: 'SAR 2,600,000',
-      buyer: 'Fatima Al-Zahra',
-      buyerEmail: 'fatima@example.com',
-      status: 'pending',
-      timestamp: '3 hours ago',
-      message: 'Very interested in this property. Can we schedule a viewing?'
-    }
-  ];
+  // Load offers and property on component mount
+  useEffect(() => {
+    loadOffers();
+    loadProperty(property.id);
+  }, [loadOffers, loadProperty, property.id]);
+
+  // Get offers for this property
+  const propertyOffers = getOffersByProperty(property.id);
 
   // Use the ownership history from the property data
   const ownershipHistory = property.ownershipHistory;
 
-  const handleOfferAction = (offerId: string, action: 'accept' | 'decline') => {
-    console.log(`${action} offer ${offerId}`);
-    // TODO: Implement offer action logic
+  const handleOfferAction = async (offerId: string, action: 'accept' | 'decline') => {
+    try {
+      const status = action === 'accept' ? 'accepted' : 'rejected';
+      await updateOfferStatus(offerId, status);
+      setNotification({
+        message: `Offer ${action}ed successfully!`,
+        type: 'success',
+        isVisible: true
+      });
+    } catch (error) {
+      console.error(`Failed to ${action} offer:`, error);
+      setNotification({
+        message: `Failed to ${action} offer. Please try again.`,
+        type: 'error',
+        isVisible: true
+      });
+    }
+  };
+
+  const handleEditProperty = () => {
+    setIsEditing(true);
   };
 
   return (
@@ -68,7 +95,10 @@ const SellerPage = () => {
             >
               🔍 Open Explorer
             </button>
-            <button className="btn btn-primary">
+            <button 
+              onClick={handleEditProperty}
+              className="btn btn-primary"
+            >
               📝 Edit Property
             </button>
           </div>
@@ -199,20 +229,28 @@ const SellerPage = () => {
             <CardBody className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold">Recent Offers</h2>
-                <Badge variant="primary">{offers.length} Total</Badge>
+                <Badge variant="primary">{propertyOffers.length} Total</Badge>
               </div>
               
               <div className="space-y-4">
-                {offers.map((offer) => (
+                {propertyOffers.map((offer) => (
                   <div key={offer.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-start mb-3">
-                      <div className="text-lg font-bold text-primary-600">{offer.amount}</div>
-                      <span className="text-sm text-gray-500">{offer.timestamp}</span>
+                      <div className="text-lg font-bold text-primary-600">
+                        {new Intl.NumberFormat('en-SA', {
+                          style: 'currency',
+                          currency: 'SAR',
+                          minimumFractionDigits: 0
+                        }).format(offer.amount)}
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        {new Date(offer.submittedAt).toLocaleDateString()}
+                      </span>
                     </div>
                     
                     <div className="mb-3">
-                      <div className="font-medium text-gray-900">{offer.buyer}</div>
-                      <div className="text-sm text-gray-500">{offer.buyerEmail}</div>
+                      <div className="font-medium text-gray-900">{offer.buyerName}</div>
+                      <div className="text-sm text-gray-500">Buyer ID: {offer.buyerId}</div>
                     </div>
                     
                     <p className="text-sm text-gray-600 mb-3">{offer.message}</p>
@@ -230,12 +268,14 @@ const SellerPage = () => {
                           <button 
                             onClick={() => handleOfferAction(offer.id, 'accept')}
                             className="btn btn-success btn-sm"
+                            disabled={offersLoading}
                           >
                             Accept
                           </button>
                           <button 
                             onClick={() => handleOfferAction(offer.id, 'decline')}
                             className="btn btn-danger btn-sm"
+                            disabled={offersLoading}
                           >
                             Decline
                           </button>
@@ -249,6 +289,21 @@ const SellerPage = () => {
           </Card>
         </div>
       </div>
+
+      {/* Property Edit Modal */}
+      <PropertyEditModal
+        property={property}
+        isOpen={isEditing}
+        onClose={() => setIsEditing(false)}
+      />
+
+      {/* Notification */}
+      <Notification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
+      />
     </div>
   );
 };
