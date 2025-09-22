@@ -1,0 +1,37 @@
+{
+  "events": [
+    {
+      "id": "tx_001",
+      "type": "Property Listed",
+      "timestamp": "2024-09-22T10:30:00Z",
+      "hash": "0x1a2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890",
+      "details": {
+        "property": "Luxury Villa - Riyadh",
+        "owner": "Ahmed Al-Rashid",
+        "price": "SAR 2,800,000"
+      }
+    },
+    {
+      "id": "tx_002",
+      "type": "Identity Verification",
+      "timestamp": "2024-09-22T09:45:00Z",
+      "hash": "0x3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890abcd",
+      "details": {
+        "user": "Sarah Al-Mansouri",
+        "status": "Verified",
+        "method": "NAFTA-SIM"
+      }
+    },
+    {
+      "id": "tx_003",
+      "type": "Deed Verification",
+      "timestamp": "2024-09-22T08:20:00Z",
+      "hash": "0x4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+      "details": {
+        "property": "Luxury Villa - Riyadh",
+        "status": "Verified",
+        "authority": "Saudi Land Registry"
+      }
+    }
+  ]
+}
