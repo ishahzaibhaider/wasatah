@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User, LoginForm, DigitalID } from '../types/models';
-import { findUserByEmail, cloneSeedUsers } from '../utils/data';
 
 interface AuthState {
   // State
@@ -33,19 +32,25 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         
         try {
+          // TODO: Implement actual login logic with API
+          console.log('Login attempt:', credentials);
+          
           // Simulate API call
           await new Promise(resolve => setTimeout(resolve, 1000));
           
-          // Load seed users and find matching user
-          const seedUsers = cloneSeedUsers();
-          const foundUser = findUserByEmail(seedUsers, credentials.email);
-          
-          if (!foundUser) {
-            throw new Error('Invalid credentials');
-          }
+          // Mock user data for demo
+          const mockUser: User = {
+            id: 'user_001',
+            email: credentials.email,
+            name: 'Demo User',
+            phone: '+966501234567',
+            role: 'buyer', // Default role, will be changed in role selection
+            createdAt: new Date().toISOString(),
+            isActive: true,
+          };
           
           set({
-            user: foundUser,
+            user: mockUser,
             isAuthenticated: true,
             isLoading: false,
             error: null,

@@ -10,6 +10,7 @@
     "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\"",
     "dev:web": "npm run dev --workspace=apps/web",
     "dev:api": "npm run dev --workspace=apps/dev-api",
+    "dev:web-only": "node start-web-only.js",
     "build": "npm run build --workspace=apps/web",
     "build:web": "npm run build --workspace=apps/web",
     "build:api": "npm run build --workspace=apps/dev-api",
