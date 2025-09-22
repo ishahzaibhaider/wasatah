@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { Property, PropertyFilters, SearchParams, PropertyForm } from '../types/models';
+import { cloneSeedProperties, findPropertyById, generateId } from '../utils/data';
 
 interface PropertyState {
   // State
@@ -41,61 +42,15 @@ export const usePropertyStore = create<PropertyState>((set, get) => ({
     set({ isLoading: true, error: null });
     
     try {
-      // TODO: Implement API call to load properties
-      console.log('Loading properties...');
-      
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Mock properties data
-      const mockProperties: Property[] = [
-        {
-          id: 'prop_001',
-          title: 'Luxury Villa in Riyadh',
-          description: 'Beautiful modern villa with premium amenities',
-          address: 'Al Olaya District',
-          city: 'Riyadh',
-          country: 'Saudi Arabia',
-          price: 2800000,
-          currency: 'SAR',
-          area: 450,
-          bedrooms: 5,
-          bathrooms: 4,
-          yearBuilt: 2018,
-          propertyType: 'villa',
-          status: 'available',
-          ownerId: 'user_002',
-          ownerName: 'Ahmed Al-Rashid',
-          deedVerified: true,
-          ownershipHistory: [
-            {
-              ownerId: 'user_002',
-              ownerName: 'Ahmed Al-Rashid',
-              fromDate: '2020-01-01',
-              transferType: 'purchase',
-              deedVerified: true,
-              verificationAuthority: 'Saudi Land Registry',
-            },
-            {
-              ownerId: 'user_003',
-              ownerName: 'Mohammed Al-Saud',
-              fromDate: '2015-01-01',
-              toDate: '2020-01-01',
-              transferType: 'purchase',
-              deedVerified: true,
-              verificationAuthority: 'Saudi Land Registry',
-            },
-          ],
-          images: ['/images/villa1.jpg', '/images/villa2.jpg'],
-          features: ['Swimming Pool', 'Garden', 'Parking', 'Security'],
-          createdAt: '2024-01-01T00:00:00Z',
-          updatedAt: '2024-09-22T00:00:00Z',
-        },
-      ];
+      // Load seed properties
+      const seedProperties = cloneSeedProperties();
       
       set({
-        properties: mockProperties,
-        filteredProperties: mockProperties,
+        properties: seedProperties,
+        filteredProperties: seedProperties,
         isLoading: false,
       });
     } catch (error) {
@@ -145,7 +100,7 @@ export const usePropertyStore = create<PropertyState>((set, get) => ({
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       const newProperty: Property = {
-        id: `prop_${Date.now()}`,
+        id: generateId('prop'),
         ...propertyData,
         country: 'Saudi Arabia', // Default country
         currency: 'SAR', // Default currency
