@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useLedgerStore } from '../stores/useLedgerStore';
 import { useSecurityStore } from '../stores/useSecurityStore';
+import { createPseudoSignature } from '../utils/crypto';
+import { isReadonlyMode } from '../utils/api';
 import Notification from '../components/Notification';
 import Badge from '../components/ui/Badge';
 
@@ -127,6 +129,42 @@ const BrokerPage = () => {
     }
   };
 
+  const handleCompleteTransaction = async (connectionId: string, buyerId: string, sellerId: string, propertyId: string, amount: number) => {
+    try {
+      const transactionPayload = {
+        connectionId,
+        buyerId,
+        sellerId,
+        propertyId,
+        amount,
+        completedAt: new Date().toISOString(),
+        brokerId: 'broker_001'
+      };
+
+      const signature = createPseudoSignature(transactionPayload);
+
+      await addEvent('transfer_completed', 'broker_001', 'Current Broker', {
+        ...transactionPayload,
+        signature,
+        transactionHash: `tx_${Date.now()}`,
+        status: 'completed'
+      });
+
+      setNotification({
+        message: 'Transaction completed successfully! 🎉',
+        type: 'success',
+        isVisible: true
+      });
+    } catch (error) {
+      console.error('Failed to complete transaction:', error);
+      setNotification({
+        message: 'Failed to complete transaction. Please try again.',
+        type: 'error',
+        isVisible: true
+      });
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-8 flex justify-between items-center">
@@ -135,20 +173,24 @@ const BrokerPage = () => {
           <p className="text-gray-600">Connect buyers and sellers in the Wasatah network</p>
         </div>
         <div className="flex space-x-3">
-          <button
-            onClick={handleTestImpersonation}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
-          >
-            <span>🛡️</span>
-            <span>Test Security</span>
-          </button>
-          <button
-            onClick={() => setShowLinkModal(true)}
-            className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2"
-          >
-            <span>🔗</span>
-            <span>Link Buyer & Seller</span>
-          </button>
+          {!isReadonlyMode() && (
+            <button
+              onClick={handleTestImpersonation}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+            >
+              <span>🛡️</span>
+              <span>Test Security</span>
+            </button>
+          )}
+          {!isReadonlyMode() && (
+            <button
+              onClick={() => setShowLinkModal(true)}
+              className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2"
+            >
+              <span>🔗</span>
+              <span>Link Buyer & Seller</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -170,10 +212,18 @@ const BrokerPage = () => {
                 <p>Buyer: Sarah Al-Mansouri</p>
                 <p>Offer: SAR 2,500,000</p>
               </div>
-              <div className="mt-3">
+              <div className="mt-3 flex space-x-2">
                 <button className="px-3 py-1 bg-primary-600 text-white text-sm rounded-md hover:bg-primary-700">
                   Facilitate Meeting
                 </button>
+                {!isReadonlyMode() && (
+                  <button 
+                    onClick={() => handleCompleteTransaction('conn_001', 'buyer_001', 'seller_001', 'prop_001', 2500000)}
+                    className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700"
+                  >
+                    Complete Transaction
+                  </button>
+                )}
               </div>
             </div>
             

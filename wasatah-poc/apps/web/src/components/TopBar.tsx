@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useLedgerStore } from '../stores/useLedgerStore';
+import { isReadonlyMode } from '../utils/api';
 
 const TopBar = () => {
   const { resetLedger } = useLedgerStore();
@@ -96,12 +97,19 @@ const TopBar = () => {
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
-            <button
-              onClick={handleReset}
-              className="btn btn-secondary btn-sm"
-            >
-              🔄 Reset Demo
-            </button>
+            {!isReadonlyMode() && (
+              <button
+                onClick={handleReset}
+                className="btn btn-secondary btn-sm"
+              >
+                🔄 Reset Demo
+              </button>
+            )}
+            {isReadonlyMode() && (
+              <div className="px-3 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
+                📖 Read-Only Mode
+              </div>
+            )}
           </div>
         </div>
 

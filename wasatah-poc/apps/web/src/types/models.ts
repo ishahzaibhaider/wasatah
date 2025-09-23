@@ -87,6 +87,7 @@ export type EventType =
   | 'offer_accepted'
   | 'offer_rejected'
   | 'transaction_completed'
+  | 'transfer_completed'
   | 'identity_verification'
   | 'deed_verification'
   | 'risk_assessment'

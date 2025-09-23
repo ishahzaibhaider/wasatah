@@ -6,6 +6,9 @@ import propertyData from '../data/property.json';
 import { useRoleStore } from '../stores/useRoleStore';
 import { useOfferStore } from '../stores/useOfferStore';
 import { usePropertyStore } from '../stores/usePropertyStore';
+import { useLedgerStore } from '../stores/useLedgerStore';
+import { createPseudoSignature } from '../utils/crypto';
+import { isReadonlyMode } from '../utils/api';
 import PropertyEditModal from '../components/PropertyEditModal';
 import Notification from '../components/Notification';
 
@@ -33,6 +36,8 @@ const SellerPage = () => {
   const { 
     loadProperty
   } = usePropertyStore();
+
+  const { addEvent } = useLedgerStore();
   
   // Get the featured property from the seed data
   const property = propertyData[0] as any;
@@ -70,6 +75,42 @@ const SellerPage = () => {
 
   const handleEditProperty = () => {
     setIsEditing(true);
+  };
+
+  const handleCompleteTransaction = async (offerId: string, buyerId: string, amount: number) => {
+    try {
+      const transactionPayload = {
+        offerId,
+        buyerId,
+        sellerId: property.ownerId,
+        propertyId: property.id,
+        amount,
+        completedAt: new Date().toISOString(),
+        sellerName: property.ownerName
+      };
+
+      const signature = createPseudoSignature(transactionPayload);
+
+      await addEvent('transfer_completed', property.ownerId, property.ownerName, {
+        ...transactionPayload,
+        signature,
+        transactionHash: `tx_${Date.now()}`,
+        status: 'completed'
+      });
+
+      setNotification({
+        message: 'Transaction completed successfully! 🎉',
+        type: 'success',
+        isVisible: true
+      });
+    } catch (error) {
+      console.error('Failed to complete transaction:', error);
+      setNotification({
+        message: 'Failed to complete transaction. Please try again.',
+        type: 'error',
+        isVisible: true
+      });
+    }
   };
 
   return (
@@ -276,6 +317,15 @@ const SellerPage = () => {
                             Decline
                           </button>
                         </div>
+                      )}
+                      
+                      {offer.status === 'accepted' && !isReadonlyMode() && (
+                        <button 
+                          onClick={() => handleCompleteTransaction(offer.id, offer.buyerId, offer.amount)}
+                          className="btn btn-primary btn-sm"
+                        >
+                          Complete Transaction
+                        </button>
                       )}
                     </div>
                   </div>
