@@ -1,69 +1,53 @@
-# React + TypeScript + Vite
+# Wasatah Web (React + TypeScript + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend for the Wasatah.app PoC featuring role-based dashboards, a blockchain explorer, and simulated digital ID/verification UX.
 
-Currently, two official plugins are available:
+## Quick Start
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+# Install deps from repo root (recommended)
+npm install
 
-## Expanding the ESLint configuration
+# Start web (port 5173)
+npm run dev --workspace=apps/web
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+# Build
+npm run build --workspace=apps/web
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other config...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Readonly build (no API required)
+npm run build:readonly --workspace=apps/web
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Routes
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- `/` and `/login` — Login (mock)
+- `/role` — Role selection
+- `/seller` — Seller dashboard
+- `/broker` — Broker dashboard
+- `/buyer` — Buyer dashboard
+- `/explorer` — Blockchain explorer
+- `/about-zk` — About Zero-Knowledge (informational)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## State Stores (Zustand)
+
+- `useAuthStore` — mock auth/session state
+- `useRoleStore` — selected role
+- `usePropertyStore` — properties listing
+- `useOfferStore` — offers and submission
+- `useLedgerStore` — blockchain events
+- `useSecurityStore` — risk flags and banners
+
+## Data Flow
+
+- By default the UI calls the Dev API (`/api/*`).
+- If `VITE_READONLY=true` at build time, `useLedgerStore` loads events from `src/data/ledger.seed.json` and disables mutating calls.
+
+## Components
+
+- Layout: `Container`, `Section`, `PageHeading`, `TopBar`
+- UI: `Card`, `Badge`, `Banner`, `Notification`, `PropertyEditModal`
+
+## Notes
+
+- This app is a PoC; login, identity, ZKP, and risk detection are simulated.
+- TailwindCSS used for styling; see `tailwind.config.js` and `src/index.css`.

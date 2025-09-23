@@ -1,162 +1,124 @@
 # Wasatah.app - Blockchain + AI Real Estate PoC
 
-A monorepo containing the Wasatah.app proof-of-concept demonstrating NAFTA-style identity verification, digital ID issuance, buyer-seller-broker roles, impersonation detection, ZKP-like proof tags, and a JSON-backed blockchain explorer.
+A monorepo containing the Wasatah.app proof-of-concept demonstrating NAFTA-style identity verification (simulated), digital ID issuance, buyer-seller-broker roles, impersonation detection banners, ZKP-like proof tags (visual), and a JSON-backed blockchain explorer UI.
 
 ## 🏗️ Project Structure
 
 ```
 wasatah-poc/
 ├── apps/
-│   ├── web/          # React 18 + Vite + TypeScript + Tailwind + React Router + Zustand
-│   └── dev-api/      # Node 20 + Express 4 API server
+│   ├── web/          # React + TypeScript + Vite + Tailwind + Router + Zustand
+│   └── dev-api/      # Node 20 + Express 4 API server (in-memory storage)
 ├── package.json      # Root package.json with npm workspaces
 └── README.md
 ```
 
 ## 🚀 Quick Start
 
-
 ### Prerequisites
 - Node.js 20+
 - npm 9+
 
-### Installation
+### Install & Run
 ```bash
-# Install all dependencies
-npm install
+# Install all workspaces
+yarn || npm install
 
-# Start both development servers
+# Start both web + API (default ports: 5173, 3001)
 npm run dev
 
 # Or start individually
-npm run dev:web    # Frontend on http://localhost:5173
-npm run dev:api    # API on http://localhost:3001
+npm run dev:web    # http://localhost:5173
+npm run dev:api    # http://localhost:3001
 ```
+
+### Readonly build (no API required)
+```bash
+# Build web to use bundled seed data (no backend calls)
+npm run build:readonly
+```
+This produces a static build that reads `src/data/ledger.seed.json` via the store fallback.
 
 ## 📱 Web Application (apps/web)
 
-**Tech Stack:**
-- React 18 with TypeScript
-- Vite for build tooling
-- TailwindCSS for styling
-- React Router for navigation
-- Zustand for state management
-
-**Routes:**
-- `/` - Login page
-- `/login` - Login page
-- `/role` - Role selection (Buyer/Seller/Broker)
-- `/seller` - Seller dashboard
-- `/broker` - Broker dashboard
-- `/buyer` - Buyer dashboard
-- `/explorer` - Blockchain explorer
-- `/about-zk` - About Zero-Knowledge Proofs
-
-**Features:**
-- Top bar with logo and navigation
-- Reset functionality for demo
-- Role-based dashboards
-- Property listings with verification badges
-- Offer submission system
-- Blockchain transaction explorer
+- React 18, TypeScript, Vite, TailwindCSS
+- React Router routes:
+  - `/` and `/login` – Login mock
+  - `/role` – Role selection (Buyer/Seller/Broker)
+  - `/seller`, `/broker`, `/buyer` – Role dashboards
+  - `/explorer` – Blockchain explorer
+  - `/about-zk` – About Zero-Knowledge (informational)
+- Zustand stores: auth, role, ledger, offers, properties, security banners
+- Read-only mode: when built with `VITE_READONLY=true`, the UI uses local seed data and disables mutating calls
 
 ## 🔧 Development API (apps/dev-api)
 
-**Tech Stack:**
-- Node.js 20 with TypeScript
-- Express 4 for web framework
-- JSON file-based ledger storage
-
-**Endpoints:**
-- `GET /api/ledger` - Get all ledger events
-- `POST /api/ledger` - Add new ledger event
-- `POST /api/ledger/reset` - Reset ledger to initial state
-- `GET /health` - Health check
-
-**Features:**
-- CORS enabled for frontend integration
-- Helmet for security headers
-- Morgan for request logging
-- JSON-based blockchain ledger simulation
+- Express 4 + TypeScript
+- Routes mounted under `/api`: `ledger`, `users`, `properties`, `offers`
+- Health: `GET /health`
+- Ledger: `GET /api/ledger`, `POST /api/ledger/append`, `POST /api/ledger/reset`
+- Users/Properties/Offers: full CRUD and filtered list endpoints
+- Storage: in-memory database fallback in `src/config/database.ts` (data resets on restart)
 
 ## 🎯 Demo Flow
 
-1. **Login** - Use demo credentials (demo@wasatah.app / demo123)
-2. **Select Role** - Choose between Buyer, Seller, or Broker
-3. **Explore Dashboard** - View role-specific functionality
-4. **Make Transactions** - Submit offers, view properties, connect parties
-5. **View Explorer** - See all blockchain transactions
-6. **Reset Demo** - Clear all demo data
+1. Login (mock credentials)
+2. Select a role
+3. View role dashboard and data
+4. Make or view offers, see verifications, check explorer
+5. Reset demo to reseed data
 
-## 🛠️ Development Commands
+## 🛠️ Commands
 
 ```bash
-# Root level commands
-npm run dev          # Start both web and API
-npm run build        # Build web application
-npm run lint         # Lint all workspaces
-npm run format       # Format code with Prettier
+# Root
+npm run dev           # Start web + API
+npm run build         # Build web
+npm run build:readonly
+npm run lint          # Lint all workspaces
+npm run format        # Prettier write
 
-# Web app commands
-npm run dev:web      # Start web dev server
-npm run build:web    # Build web app
-npm run lint --workspace=apps/web
+# Web
+npm run dev --workspace=apps/web
+npm run build --workspace=apps/web
 
-# API commands
-npm run dev:api      # Start API server
-npm run build:api    # Build API
-npm run lint --workspace=apps/dev-api
+# API
+npm run dev --workspace=apps/dev-api
+npm run setup --workspace=apps/dev-api
+npm run reset --workspace=apps/dev-api
 ```
 
 ## 📋 Key Features
 
-### Identity Verification (Simulated)
-- NAFTA-style verification simulation
-- Digital ID issuance
-- ZKP-like proof tags (visual simulation)
+### Identity & ZKP (Simulated)
+- Digital ID with verification flags and risk score (UI only)
+- ZKP-like proof tags on events (no real cryptography beyond hashes)
 
-### Role-Based System
-- **Buyer**: Browse properties, make offers, track transactions
-- **Seller**: Manage listings, view offers, ownership history
-- **Broker**: Connect parties, facilitate transactions
+### Role-Based UX
+- Buyer, Seller, Broker pages with tailored content
 
 ### Blockchain Explorer
-- JSON-backed transaction ledger
-- Real-time transaction viewing
-- Cryptographic hash simulation
-- Transaction type categorization
+- Event list with types, hashes, signatures, and metadata
+- SHA-256 hashing of event payloads on the server
 
-### Impersonation Detection
-- Alert-style risk assessment
-- Simulated fraud detection
-- Risk indicator banners
+### Impersonation Detection (UI)
+- Risk banner and flags seeded in demo data
 
-## 🔒 Security Notes
+## 🔒 Security & Data Notes
 
-- This is a **Proof of Concept** - no real authentication or blockchain
-- All data is synthetic and stored locally
-- No sensitive information is processed
-- ZKP features are visual simulations only
-
-## 📅 Timeline
-
-**Target**: Ship by September 28, 2024
-
-**Current Phase**: Bootstrap & Core Setup (Phase 0.1)
-
-## 🎨 Design System
-
-- **Primary Colors**: Blue palette (primary-50 to primary-900)
-- **Secondary Colors**: Gray palette (secondary-50 to secondary-900)
-- **Typography**: System fonts with TailwindCSS
-- **Layout**: Desktop-first responsive design
-- **Components**: Reusable TailwindCSS components
+- This is a PoC; no real auth, KYC, or blockchain
+- All data is synthetic. API uses in-memory storage by default;
+  nothing persists across restarts.
+- Do not put secrets in source. If enabling MongoDB later,
+  move URIs to environment variables.
 
 ## 📚 Documentation
 
-- [Project Brief](../PROJECT_BRIEF.md) - Complete project requirements
-- [Implementation Plan](../IMPLEMENTATION_PLAN.md) - 18-phase development plan
+- `apps/dev-api/README.md` – API setup and endpoints
+- `apps/web/README.md` – Web app usage (to be expanded)
+- `PROJECT_BRIEF.md` – Project requirements
+- `IMPLEMENTATION_PLAN.md` – Planned phases
 
 ---
 
-**Status**: ✅ Phase 0.1 Complete - Monorepo & Web App Bootstraped
+Status: ✅ Bootstrap complete; core pages, stores, and API wired in dev.

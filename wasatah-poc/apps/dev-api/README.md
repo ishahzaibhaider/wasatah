@@ -17,61 +17,95 @@ npm run dev
 
 ## API Endpoints
 
-### Health Check
-- **GET** `/health` - General health check
-- **GET** `/api/ledger/health` - Ledger service health check
+### Health
+- GET `/health` - Server health
 
-### Ledger Operations
-- **GET** `/api/ledger` - Get all ledger events
-- **POST** `/api/ledger/append` - Add new ledger event (with validation)
-- **POST** `/api/ledger/reset` - Reset ledger to seed data
+### Ledger
+- GET `/api/ledger` - List all ledger events
+- POST `/api/ledger/append` - Append a new ledger event (validated + hashed)
+- POST `/api/ledger/reset` - Reset and reseed ledger/events
+
+### Users
+- GET `/api/users` - List users
+- GET `/api/users/:id` - Get user by id
+- POST `/api/users` - Create user
+- PUT `/api/users/:id` - Update user
+- DELETE `/api/users/:id` - Delete user
+
+### Properties
+- GET `/api/properties` - List properties
+- GET `/api/properties/:id` - Get property by id
+- GET `/api/properties/owner/:ownerId` - List properties by owner
+- POST `/api/properties` - Create property
+- PUT `/api/properties/:id` - Update property
+- DELETE `/api/properties/:id` - Delete property
+
+### Offers
+- GET `/api/offers` - List offers
+- GET `/api/offers/:id` - Get offer by id
+- GET `/api/offers/property/:propertyId` - List offers for a property
+- GET `/api/offers/buyer/:buyerId` - List offers by buyer
+- GET `/api/offers/seller/:sellerId` - List offers by seller
+- POST `/api/offers` - Create offer
+- PUT `/api/offers/:id` - Update offer
+- DELETE `/api/offers/:id` - Delete offer
 
 ## Ledger Event Structure
 
 ```json
 {
-  "type": "user_registered|identity_verification|property_listed|offer_made|transaction_completed|impersonation_detected",
+  "type": "user_registered|user_verified|property_listed|property_updated|offer_made|offer_accepted|offer_rejected|transaction_completed|transfer_completed|identity_verification|deed_verification|risk_assessment|impersonation_detected|impersonation_flag|buyer_broker_linked|zkp_check",
   "actorId": "string",
-  "actorName": "string", 
-  "details": {
-    // Event-specific data
-  }
+  "actorName": "string",
+  "details": { },
+  "timestamp": "ISO string",
+  "hash": "0x...",
+  "signature": "sig_...",
+  "blockNumber": 1000,
+  "transactionIndex": 0
 }
 ```
 
 ## Features
 
-- ✅ **CORS Enabled** - Configured for localhost:5173 (Vite dev server)
-- ✅ **Event Validation** - Validates event structure before appending
-- ✅ **SHA256 Signatures** - Computes cryptographic hashes for events
-- ✅ **Atomic Writes** - Ensures data consistency
-- ✅ **Seed Data Management** - Easy reset to initial state
-- ✅ **TypeScript** - Full type safety
-- ✅ **Error Handling** - Comprehensive error responses
+- ✅ CORS for `localhost:5173`
+- ✅ Helmet, morgan, JSON body parser
+- ✅ Event validation + SHA256 event hashing
+- ✅ Seed and reset demo data
+- ✅ TypeScript models with CRUD routes (users, properties, offers, ledger)
+- ✅ In-memory DB fallback for local dev (no external services required)
 
 ## Scripts
 
-- `npm run dev` - Start development server with hot reload
-- `npm run setup` - Copy seed data to ledger.json (first run)
-- `npm run reset` - Reset ledger via API call
-- `npm run build` - Build for production
-- `npm run lint` - Run ESLint
+- `npm run dev` - Start dev server with tsx watch
+- `npm run setup` - Copy seed data files (first run)
+- `npm run reset` - Reset data via API call
+- `npm run build` - TypeScript build
+- `npm run lint` - ESLint
 
 ## Configuration
 
-- **Port**: 3001 (configurable via PORT env var)
-- **CORS**: Enabled for localhost:5173 and 127.0.0.1:5173
-- **Data Directory**: `./data/`
-- **Seed File**: `./data/ledger.seed.json`
-- **Ledger File**: `./data/ledger.json`
+- Port: `3001` (override with `PORT`)
+- CORS: `http://localhost:5173`, `http://127.0.0.1:5173`
+- Data: seeded via code (`utils/seedData.ts`)
+- Database: In-memory fallback is used by default; see "Database" below
 
-## Example Usage
+## Database
+
+The code includes a MongoDB client wrapper, but `connectToDatabase()` currently uses an in-memory store for development to avoid external dependencies. Data does not persist across restarts.
+
+If you later enable MongoDB, move credentials to environment variables and remove any hardcoded URIs.
+
+## Examples
 
 ```bash
-# Get all events
+# Health
+curl http://localhost:3001/health
+
+# List events
 curl http://localhost:3001/api/ledger
 
-# Add new event
+# Append event
 curl -X POST http://localhost:3001/api/ledger/append \
   -H "Content-Type: application/json" \
   -d '{
@@ -85,10 +119,8 @@ curl -X POST http://localhost:3001/api/ledger/append \
 curl -X POST http://localhost:3001/api/ledger/reset
 ```
 
-## Development Notes
+## Notes
 
-- Server automatically initializes ledger from seed data on first run
-- All events are validated before being appended
-- SHA256 hashes are computed for blockchain simulation
-- Events are stored in chronological order (newest first)
-- Comprehensive error handling with detailed messages
+- Server seeds demo users, properties, offers, risk flags, and ledger events on first run/reset.
+- Ledger events are returned newest-first.
+- Hash and signature are generated per event for blockchain-like UX.
