@@ -60,7 +60,7 @@ export interface Property {
   updatedAt: string;
 }
 
-export type OfferStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'expired';
+export type OfferStatus = 'pending' | 'locked' | 'accepted' | 'rejected' | 'withdrawn' | 'expired';
 
 export interface Offer {
   id: string;
@@ -91,6 +91,8 @@ export type EventType =
   | 'deed_verification'
   | 'risk_assessment'
   | 'impersonation_detected'
+  | 'impersonation_flag'
+  | 'buyer_broker_linked'
   | 'zkp_check';
 
 export interface LedgerEvent {

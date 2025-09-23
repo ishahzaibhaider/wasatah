@@ -1,9 +1,155 @@
+import { useState } from 'react';
+import { useLedgerStore } from '../stores/useLedgerStore';
+import { useSecurityStore } from '../stores/useSecurityStore';
+import Notification from '../components/Notification';
+import Badge from '../components/ui/Badge';
+
 const BrokerPage = () => {
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [selectedBuyer, setSelectedBuyer] = useState('');
+  const [selectedSeller, setSelectedSeller] = useState('');
+  const [selectedProperty, setSelectedProperty] = useState('');
+  const [isLinking, setIsLinking] = useState(false);
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'info';
+    isVisible: boolean;
+  }>({
+    message: '',
+    type: 'info',
+    isVisible: false
+  });
+
+  const { addEvent } = useLedgerStore();
+  const { evaluateImpersonation } = useSecurityStore();
+
+  const mockBuyers = [
+    { id: 'buyer_001', name: 'Sarah Al-Mansouri', email: 'sarah@example.com' },
+    { id: 'buyer_002', name: 'Ahmed Al-Rashid', email: 'ahmed@example.com' },
+    { id: 'buyer_003', name: 'Fatima Al-Zahra', email: 'fatima@example.com' }
+  ];
+
+  const mockSellers = [
+    { id: 'seller_001', name: 'Khalid Al-Sabah', email: 'khalid@example.com' },
+    { id: 'seller_002', name: 'Noura Al-Mutairi', email: 'noura@example.com' },
+    { id: 'seller_003', name: 'Omar Al-Ghamdi', email: 'omar@example.com' }
+  ];
+
+  const mockProperties = [
+    { id: 'prop_001', title: 'Luxury Villa - Riyadh', price: 2800000 },
+    { id: 'prop_002', title: 'Modern Apartment - Jeddah', price: 1800000 },
+    { id: 'prop_003', title: 'Townhouse - Dammam', price: 1200000 }
+  ];
+
+  const handleLinkBuyerSeller = async () => {
+    if (!selectedBuyer || !selectedSeller || !selectedProperty) {
+      setNotification({
+        message: 'Please select buyer, seller, and property',
+        type: 'error',
+        isVisible: true
+      });
+      return;
+    }
+
+    setIsLinking(true);
+    
+    try {
+      const buyer = mockBuyers.find(b => b.id === selectedBuyer);
+      const seller = mockSellers.find(s => s.id === selectedSeller);
+      const property = mockProperties.find(p => p.id === selectedProperty);
+
+      await addEvent('buyer_broker_linked', 'broker_001', 'Current Broker', {
+        buyerId: selectedBuyer,
+        sellerId: selectedSeller,
+        propertyId: selectedProperty,
+        buyerName: buyer?.name,
+        sellerName: seller?.name,
+        propertyTitle: property?.title,
+        linkedAt: new Date().toISOString()
+      });
+
+      setNotification({
+        message: 'Buyer and Seller successfully linked! 🔗',
+        type: 'success',
+        isVisible: true
+      });
+
+      setShowLinkModal(false);
+      setSelectedBuyer('');
+      setSelectedSeller('');
+      setSelectedProperty('');
+    } catch (error) {
+      console.error('Failed to link buyer and seller:', error);
+      setNotification({
+        message: 'Failed to link buyer and seller. Please try again.',
+        type: 'error',
+        isVisible: true
+      });
+    } finally {
+      setIsLinking(false);
+    }
+  };
+
+  const handleTestImpersonation = async () => {
+    const testUser = {
+      id: 'test_user_001',
+      email: 'sarah@example.com', // This will trigger duplicate email rule
+      name: 'Test User',
+      phone: '+966501234567', // This will trigger duplicate phone rule
+      role: 'broker' as const,
+      digitalId: {
+        id: 'digital_001', // This will trigger duplicate DigitalID rule
+        userId: 'test_user_001',
+        verified: true,
+        verificationMethod: 'NAFTA_SIM' as const,
+        issuedAt: new Date().toISOString(),
+        riskScore: 25
+      },
+      createdAt: new Date().toISOString(),
+      isActive: true
+    };
+
+    try {
+      const riskFlags = await evaluateImpersonation(testUser, { page: 'broker' });
+      
+      setNotification({
+        message: `Impersonation evaluation completed. Found ${riskFlags.length} risk flag(s).`,
+        type: riskFlags.length > 0 ? 'error' : 'success',
+        isVisible: true
+      });
+    } catch (error) {
+      console.error('Failed to evaluate impersonation:', error);
+      setNotification({
+        message: 'Failed to evaluate impersonation. Please try again.',
+        type: 'error',
+        isVisible: true
+      });
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Broker Dashboard</h1>
-        <p className="text-gray-600">Connect buyers and sellers in the Wasatah network</p>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Broker Dashboard</h1>
+          <p className="text-gray-600">Connect buyers and sellers in the Wasatah network</p>
+        </div>
+        <div className="flex space-x-3">
+          <button
+            onClick={handleTestImpersonation}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+          >
+            <span>🛡️</span>
+            <span>Test Security</span>
+          </button>
+          <button
+            onClick={() => setShowLinkModal(true)}
+            className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2"
+          >
+            <span>🔗</span>
+            <span>Link Buyer & Seller</span>
+          </button>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-8">
@@ -14,7 +160,10 @@ const BrokerPage = () => {
             <div className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-medium">Luxury Villa - Riyadh</h3>
-                <span className="text-sm text-green-600">Active</span>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="success">Active</Badge>
+                  <Badge variant="primary">🔐 ZKP Verified</Badge>
+                </div>
               </div>
               <div className="text-sm text-gray-600 space-y-1">
                 <p>Seller: Ahmed Al-Rashid</p>
@@ -25,6 +174,23 @@ const BrokerPage = () => {
                 <button className="px-3 py-1 bg-primary-600 text-white text-sm rounded-md hover:bg-primary-700">
                   Facilitate Meeting
                 </button>
+              </div>
+            </div>
+            
+            {/* Success state example */}
+            <div className="border border-green-200 bg-green-50 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-medium text-green-800">Modern Apartment - Jeddah</h3>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="success">Linked Successfully</Badge>
+                  <Badge variant="primary">🔐 ZKP Verified</Badge>
+                </div>
+              </div>
+              <div className="text-sm text-green-700 space-y-1">
+                <p>Seller: Noura Al-Mutairi</p>
+                <p>Buyer: Fatima Al-Zahra</p>
+                <p>Property: Modern Apartment - Jeddah</p>
+                <p className="text-xs text-green-600 mt-2">✅ buyer_broker_linked event created</p>
               </div>
             </div>
           </div>
@@ -73,6 +239,109 @@ const BrokerPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Link Buyer & Seller Modal */}
+      {showLinkModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-xl font-semibold mb-4">Link Buyer & Seller</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Buyer
+                </label>
+                <select
+                  value={selectedBuyer}
+                  onChange={(e) => setSelectedBuyer(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="">Choose a buyer...</option>
+                  {mockBuyers.map((buyer) => (
+                    <option key={buyer.id} value={buyer.id}>
+                      {buyer.name} ({buyer.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Seller
+                </label>
+                <select
+                  value={selectedSeller}
+                  onChange={(e) => setSelectedSeller(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="">Choose a seller...</option>
+                  {mockSellers.map((seller) => (
+                    <option key={seller.id} value={seller.id}>
+                      {seller.name} ({seller.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Property
+                </label>
+                <select
+                  value={selectedProperty}
+                  onChange={(e) => setSelectedProperty(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="">Choose a property...</option>
+                  {mockProperties.map((property) => (
+                    <option key={property.id} value={property.id}>
+                      {property.title} - SAR {property.price.toLocaleString()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowLinkModal(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                disabled={isLinking}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLinkBuyerSeller}
+                disabled={isLinking || !selectedBuyer || !selectedSeller || !selectedProperty}
+                className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                {isLinking ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Linking...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🔗</span>
+                    <span>Link & Create Event</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notification */}
+      <Notification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
+      />
     </div>
   );
 };

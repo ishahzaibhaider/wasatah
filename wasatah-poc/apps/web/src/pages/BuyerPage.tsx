@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardBody } from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import { useOfferStore } from '../stores/useOfferStore';
+import { useLedgerStore } from '../stores/useLedgerStore';
 import Notification from '../components/Notification';
 
 const BuyerPage = () => {
@@ -19,13 +20,13 @@ const BuyerPage = () => {
   });
   
   const { 
-    offers, 
     createOffer, 
+    updateOfferStatus,
     getOffersByBuyer, 
-    loadOffers, 
-    isLoading, 
-    error 
+    loadOffers
   } = useOfferStore();
+
+  const { addEvent } = useLedgerStore();
 
   const property = {
     id: 'prop_001',
@@ -63,15 +64,28 @@ const BuyerPage = () => {
         conditions: []
       };
       
-      await createOffer(offerData);
+      const newOffer = await createOffer(offerData);
+      
+      // Update offer status to "locked" after creation
+      await updateOfferStatus(newOffer.id, 'locked');
+      
+      // Add ledger event for offer_made
+      await addEvent('offer_made', 'current_user', 'Current User', {
+        offerId: newOffer.id,
+        propertyId: property.id,
+        amount: parseInt(offerAmount),
+        message: offerMessage,
+        status: 'locked',
+        submittedAt: newOffer.submittedAt
+      });
       
       // Reset form
       setOfferAmount('');
       setOfferMessage('');
       
-      // Show success message
+      // Show success message with locked status
       setNotification({
-        message: 'Offer submitted successfully!',
+        message: 'Offer submitted and locked successfully! 🔒',
         type: 'success',
         isVisible: true
       });
@@ -137,7 +151,7 @@ const BuyerPage = () => {
 
               {/* Property Images */}
               <div className="grid grid-cols-3 gap-4 mb-6">
-                {property.images.map((image, index) => (
+                {property.images.map((_, index) => (
                   <div key={index} className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center">
                     <span className="text-gray-400">🏠 Image {index + 1}</span>
                   </div>
@@ -274,9 +288,14 @@ const BuyerPage = () => {
                       <p className="text-lg font-bold text-primary-600">{formatCurrency(offer.amount)}</p>
                     </div>
                     <Badge 
-                      variant={offer.status === 'pending' ? 'warning' : offer.status === 'accepted' ? 'success' : 'danger'}
+                      variant={
+                        offer.status === 'locked' ? 'primary' :
+                        offer.status === 'pending' ? 'warning' : 
+                        offer.status === 'accepted' ? 'success' : 'danger'
+                      }
                     >
-                      {offer.status === 'pending' ? '⏳ Pending' : 
+                      {offer.status === 'locked' ? '🔒 Offer Locked' :
+                       offer.status === 'pending' ? '⏳ Pending' : 
                        offer.status === 'accepted' ? '✅ Accepted' : '❌ Declined'}
                     </Badge>
                   </div>

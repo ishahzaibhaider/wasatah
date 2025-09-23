@@ -11,6 +11,7 @@ interface SecurityState {
   // Actions
   loadRiskFlags: () => Promise<void>;
   checkImpersonationRisk: (user: User) => Promise<RiskFlag[]>;
+  evaluateImpersonation: (user: User, context: any) => Promise<RiskFlag[]>;
   assessIdentityRisk: (digitalId: DigitalID) => Promise<number>;
   createRiskFlag: (userId: string, type: RiskFlag['type'], severity: RiskFlag['severity'], description: string, metadata?: Record<string, any>) => Promise<RiskFlag>;
   resolveRiskFlag: (flagId: string) => Promise<void>;
@@ -154,6 +155,153 @@ export const useSecurityStore = create<SecurityState>((set, get) => ({
       set({
         isLoading: false,
         error: error instanceof Error ? error.message : 'Failed to check impersonation risk',
+      });
+      return [];
+    }
+  },
+
+  evaluateImpersonation: async (user: User, context: any) => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      console.log('Evaluating impersonation for user:', user, 'context:', context);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 600));
+      
+      const riskFlags: RiskFlag[] = [];
+      
+      // Rule 1: Duplicate email/phone across accounts
+      const existingUsers = [
+        { id: 'user_001', email: 'sarah@example.com', phone: '+966501234567' },
+        { id: 'user_002', email: 'ahmed@example.com', phone: '+966501234568' },
+        { id: 'user_003', email: 'fatima@example.com', phone: '+966501234569' }
+      ];
+      
+      const duplicateEmail = existingUsers.find(u => u.email === user.email && u.id !== user.id);
+      const duplicatePhone = user.phone && existingUsers.find(u => u.phone === user.phone && u.id !== user.id);
+      
+      if (duplicateEmail) {
+        const riskFlag: RiskFlag = {
+          id: `risk_${Date.now()}`,
+          userId: user.id,
+          type: 'impersonation',
+          severity: 'high',
+          description: 'Duplicate email address detected across multiple accounts',
+          detectedAt: new Date().toISOString(),
+          isActive: true,
+          metadata: {
+            email: user.email,
+            duplicateAccountId: duplicateEmail.id,
+            rule: 'duplicate_email',
+            confidence: 0.95,
+          },
+        };
+        riskFlags.push(riskFlag);
+      }
+      
+      if (duplicatePhone) {
+        const riskFlag: RiskFlag = {
+          id: `risk_${Date.now() + 1}`,
+          userId: user.id,
+          type: 'impersonation',
+          severity: 'high',
+          description: 'Duplicate phone number detected across multiple accounts',
+          detectedAt: new Date().toISOString(),
+          isActive: true,
+          metadata: {
+            phone: user.phone,
+            duplicateAccountId: duplicatePhone.id,
+            rule: 'duplicate_phone',
+            confidence: 0.9,
+          },
+        };
+        riskFlags.push(riskFlag);
+      }
+      
+      // Rule 2: Same DigitalID used across different accounts/roles
+      if (user.digitalId) {
+        const existingDigitalIds = [
+          { id: 'digital_001', userId: 'user_001', role: 'buyer' },
+          { id: 'digital_002', userId: 'user_002', role: 'seller' },
+          { id: 'digital_003', userId: 'user_003', role: 'broker' }
+        ];
+        
+        const duplicateDigitalId = existingDigitalIds.find(d => 
+          d.id === user.digitalId?.id && d.userId !== user.id && d.role !== user.role
+        );
+        
+        if (duplicateDigitalId) {
+          const riskFlag: RiskFlag = {
+            id: `risk_${Date.now() + 2}`,
+            userId: user.id,
+            type: 'impersonation',
+            severity: 'critical',
+            description: 'Same DigitalID used across different accounts with different roles',
+            detectedAt: new Date().toISOString(),
+            isActive: true,
+            metadata: {
+              digitalId: user.digitalId.id,
+              duplicateAccountId: duplicateDigitalId.userId,
+              duplicateRole: duplicateDigitalId.role,
+              currentRole: user.role,
+              rule: 'duplicate_digital_id',
+              confidence: 0.98,
+            },
+          };
+          riskFlags.push(riskFlag);
+        }
+      }
+      
+      // Rule 3: Velocity from localStorage fingerprint (N accounts in T minutes)
+      const fingerprint = localStorage.getItem('user_fingerprint') || 'default_fingerprint';
+      const accountCreationTimes = JSON.parse(localStorage.getItem('account_creation_times') || '[]');
+      const now = Date.now();
+      const timeWindow = 30 * 60 * 1000; // 30 minutes
+      const maxAccounts = 3;
+      
+      const recentAccounts = accountCreationTimes.filter((time: number) => now - time < timeWindow);
+      
+      if (recentAccounts.length >= maxAccounts) {
+        const riskFlag: RiskFlag = {
+          id: `risk_${Date.now() + 3}`,
+          userId: user.id,
+          type: 'impersonation',
+          severity: 'high',
+          description: `High velocity account creation detected: ${recentAccounts.length} accounts in ${timeWindow / 60000} minutes`,
+          detectedAt: new Date().toISOString(),
+          isActive: true,
+          metadata: {
+            fingerprint,
+            accountCount: recentAccounts.length,
+            timeWindow: timeWindow / 60000,
+            rule: 'velocity_check',
+            confidence: 0.85,
+          },
+        };
+        riskFlags.push(riskFlag);
+      }
+      
+      // Add new risk flags to store
+      if (riskFlags.length > 0) {
+        const currentFlags = get().riskFlags;
+        const newFlags = [...currentFlags, ...riskFlags];
+        const activeFlags = newFlags.filter(flag => flag.isActive);
+        
+        set({
+          riskFlags: newFlags,
+          activeRiskFlags: activeFlags,
+          isLoading: false,
+        });
+      } else {
+        set({ isLoading: false });
+      }
+      
+      return riskFlags;
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Failed to evaluate impersonation',
       });
       return [];
     }

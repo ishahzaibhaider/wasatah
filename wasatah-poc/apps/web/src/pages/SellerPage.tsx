@@ -11,7 +11,7 @@ import Notification from '../components/Notification';
 
 const SellerPage = () => {
   const navigate = useNavigate();
-  const { currentRole } = useRoleStore();
+  const { } = useRoleStore();
   const [isEditing, setIsEditing] = useState(false);
   const [notification, setNotification] = useState<{
     message: string;
@@ -24,7 +24,6 @@ const SellerPage = () => {
   });
   
   const { 
-    offers, 
     updateOfferStatus, 
     getOffersByProperty, 
     loadOffers, 
@@ -32,14 +31,11 @@ const SellerPage = () => {
   } = useOfferStore();
   
   const { 
-    currentProperty, 
-    updateProperty, 
-    loadProperty, 
-    isLoading: propertyLoading 
+    loadProperty
   } = usePropertyStore();
   
   // Get the featured property from the seed data
-  const property = propertyData[0];
+  const property = propertyData[0] as any;
 
   // Load offers and property on component mount
   useEffect(() => {
@@ -171,7 +167,7 @@ const SellerPage = () => {
 
               {/* Property Images */}
               <div className="grid grid-cols-3 gap-4 mb-6">
-                {property.images.map((_, index) => (
+                {property.images.map((_: any, index: number) => (
                   <div key={index} className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center">
                     <span className="text-gray-400">🏠 Image {index + 1}</span>
                   </div>
@@ -182,7 +178,7 @@ const SellerPage = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Ownership History</h3>
                 <div className="space-y-3">
-                  {ownershipHistory.map((owner, index) => {
+                  {ownershipHistory.map((owner: any, index: number) => {
                     const fromDate = new Date(owner.fromDate).toLocaleDateString();
                     const toDate = owner.toDate ? new Date(owner.toDate).toLocaleDateString() : 'Present';
                     const isCurrentOwner = !owner.toDate;
@@ -192,7 +188,7 @@ const SellerPage = () => {
                         <div className="flex items-center">
                           <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mr-3">
                             <span className="text-primary-600 font-semibold">
-                              {owner.ownerName.split(' ').map(n => n[0]).join('')}
+                              {owner.ownerName.split(' ').map((n: string) => n[0]).join('')}
                             </span>
                           </div>
                           <div>

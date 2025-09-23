@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import TopBar from './components/TopBar';
 import Container from './components/layout/Container';
+import SecurityBanner from './components/SecurityBanner';
 import LoginPage from './pages/LoginPage';
 import RolePage from './pages/RolePage';
 import SellerPage from './pages/SellerPage';
@@ -13,6 +14,7 @@ function App() {
   return (
     <Router>
       <div className="page-container">
+        <SecurityBanner />
         <TopBar />
         <main className="py-8">
           <Container>

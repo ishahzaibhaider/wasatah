@@ -31,12 +31,21 @@ const LoginPage = () => {
           verified: true,
           verificationMethod: 'NAFTA_SIM' as const,
           issuedAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+          zkpProof: 'zkp_proof_' + shortid(),
           riskScore: Math.floor(Math.random() * 20) + 5, // Random risk score 5-25
         };
       }
 
       // Update user with DigitalID
-      const updatedUser = { ...userData, digitalId };
+      const updatedUser = { 
+        ...userData, 
+        digitalId: {
+          ...digitalId,
+          verificationMethod: digitalId.verificationMethod as 'NAFTA_SIM' | 'KYC' | 'BIOMETRIC'
+        }, 
+        role: userData.role as 'buyer' | 'seller' | 'broker' 
+      };
       
       // Login with the user data
       await login({ email: userData.email, password: 'demo' });

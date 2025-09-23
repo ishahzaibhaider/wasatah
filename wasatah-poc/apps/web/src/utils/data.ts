@@ -1,5 +1,5 @@
 // Data utility helpers for Wasatah.app PoC
-import type { User, Property, LedgerEvent, Offer, RiskFlag } from '../types/models';
+import type { User, Property, LedgerEvent } from '../types/models';
 
 // Import seed data
 import usersSeed from '../data/users.json';
